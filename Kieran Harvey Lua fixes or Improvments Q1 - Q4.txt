@@ -1,0 +1,78 @@
+Q1 Fix or Improvement
+
+local function releaseStorage(player)
+player:setStorageValue(1000, -1)
+end
+
+function onLogout(player)
+if player:getStorageValue(1000) == 1 then
+  addEvent(releaseStorage, 1000, player)
+else (changed)
+ return false (changed)
+ end
+end (added)
+
+--[[ Comment: the first end in function onLogout shoud be removed as the return true will never be implemented. By replacing that value to else
+   then the condition can return false. note the true value is changed to false as the previous if statement is not true(the value is -1 not 1).
+   lastly we add end to the last line to close the function ]]
+
+Q2 Fix or Improvement
+
+function printSmallGuildNames(memberCount)
+-- this method is supposed to print names of all guilds that have less than memberCount max members
+local selectGuildQuery = assert(con:execute("SELECT name FROM guilds WHERE max_members < %d;")) (changed)
+local resultId = db.storeQuery(string.format(selectGuildQuery, memberCount))
+local guildName = result.getString("name")
+print(guildName)
+end
+
+--[[ Comment: Added the assert(con:execute to execute the sql query]]
+
+Q3 - Fix or improve the name and the implementation of the below method
+
+function do_sth_with_PlayerParty(playerId, membername)
+player = Player(playerId)
+local party = player:getParty()
+
+for k,v in pairs(party:getMembers()) do
+if v == Player(membername) then
+party:removeMember(Player(membername))
+end
+end
+(removed)
+
+--[[ Comment: removed the last end as there should be only 2, one to end the for loop and one to end the function]
+
+Q4 - Assume all method calls work fine. Fix the memory leak issue in below method
+
+void Game::addItemToPlayer(const string& recipient, uint16_t itemId) (changed)
+{
+	Player* player = g_game.getPlayerByName(recipient);
+	if (!player) 
+	{
+	  player = new Player(nullptr);
+
+	  if (!IOLoginData::loadPlayerByName(player, recipient)) 
+          {
+			Delete(player); (added)
+			return;
+	  }
+}
+
+Item* item = Item::CreateItem(itemId);
+	if (!item) 
+	{
+	  Delete(item); (Added)
+	  return;
+	}
+
+g_game.internalAddItem(player->getInbox(), item, INDEX_WHEREEVER, FLAG_NOLIMIT);
+
+if (player->isOffline()) 
+	{
+	  IOLoginData::savePlayer(player);
+	}
+}
+
+// Comment: we delete the player pointer if the player is not found in the login data if statement. In the create item function we delete the item 
+ pointer if we have no item in the if statement
